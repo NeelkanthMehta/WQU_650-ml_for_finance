@@ -69,10 +69,10 @@ from ipywidgets import interact
 #plt.show()
 
 """Problem 02"""
-#from sklearn.datasets import load_digits
-#
-## Loading data
-#digits = load_digits()
+from sklearn.datasets import load_digits
+
+# Loading data
+digits = load_digits()
 #
 ## finding number of unique labels
 #number_digits = len(np.unique(digits.target))
@@ -91,7 +91,7 @@ from ipywidgets import interact
 ## Creating a regular PCA model
 #pca = PCA(n_components=2)
 #
-#reduced_data_pca = pca.fit_transform(digits.data)
+#reduced_data_pca = pca.fit_transform(X_train)
 #
 #colors = ['black', 'blue', 'purple', 'yellow', 'white', 'red', 'lime', 'cyan', 'orange', 'gray']
 #
@@ -105,4 +105,52 @@ from ipywidgets import interact
 #plt.title('Regular PCA Scatter Plot')
 #plt.show()
 
+
 """Problem 03"""
+lda = LDA(n_components=2)
+
+X_train = lda.fit_transform(X_train,digits.target)
+
+"""Problem 04"""
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test, images_train, images_test = train_test_split(X_train, digits.target, digits.images, test_size=0.25, random_state=42)
+
+# no. of training features
+n_samples, n_features = X_train.shape
+
+n_digits = len(np.unique(y_train))
+
+wcss = []
+for i in range(1,11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', n_init=10, max_iter=300, random_state=42)
+    kmeans.fit_predict(X_train)
+    wcss.append(kmeans.inertia_)
+
+plt.plot(range(1,11),wcss)
+plt.title('The Elbow method')
+plt.xlabel('No. of clusters')
+plt.ylabel('WCSS')
+plt.grid()
+plt.xticks(np.arange(1,11, step=1))
+plt.show()
+
+# We shall apply 4 clusters:
+kmeans = KMeans(n_clusters=4, init='k-means++', n_init=10, max_iter=300, random_state=42)
+y_kmeans = kmeans.fit_predict(X_train)
+
+plt.scatter(X_train[y_kmeans == 0, 0], X_train[y_kmeans == 0, 1], s=10, c='red', label='cluster 1')
+plt.scatter(X_train[y_kmeans == 1, 0], X_train[y_kmeans == 1, 1], s=10, c='green', label='cluster 2')
+plt.scatter(X_train[y_kmeans == 2, 0], X_train[y_kmeans == 2, 1], s=10, c='blue', label='cluster 3')
+plt.scatter(X_train[y_kmeans == 3, 0], X_train[y_kmeans == 3, 1], s=10, c='pink', label='cluster 3')
+plt.scatter(kmeans.cluster_centers_[:,0], kmeans.cluster_centers_[:1], s=30, c='yellow', label='cluster centers')
+plt.title('K-means')
+plt.xlabel('m')
+plt.ylabel('n')
+plt.legend(loc='best')
+plt.show()
+
+
+y_kmeans_pred = kmeans.predict(X_test)
+
+C_M = confusion_matrix(y_test, y_kmeans_pred)
